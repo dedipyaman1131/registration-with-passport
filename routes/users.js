@@ -27,21 +27,7 @@ const User =  require('../models/User')
 //body-parser
 router.use(bodyParser.urlencoded({ extended: false }));
 
-// Authentication
-Authenticated = { ensureAuthenticated: function(req, res, next) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  req.flash('error_msg', 'Please log in to view that resource');
-  res.redirect('/users/login');
-},
-forwardAuthenticated: function(req, res, next) {
-  if (!req.isAuthenticated()) {
-    return next();
-  }
-  res.redirect('/dashboard');      
-}
-}
+
 
 //register post
 router.post('/register',(req,res)=>{
