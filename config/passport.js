@@ -21,16 +21,17 @@ module.exports = (passport)=>{
                 return done(null , false , {message:'the email you entered is not registered!!!'})
             }else{
 
-                //matching password
+                 //matching password
                 
                 bcrypt.compare(password ,user.password , (err, isMatch)=>{
+
                     if(err){
                        throw err 
                     }
-                    if(isMatch){
-                        return done(null, user)
-                    }else{
+                    if(!isMatch){
                         return done(null , false, {message:'password that you entered is not correct!!'})
+                    }else{
+                        return done(null , user)
                     }
 
                 })

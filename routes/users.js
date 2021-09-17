@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs');
 const saltRounds = 10;
 const passport = require('passport');
+const { ensureAuthenticated } = require('../config/auth')
 
 // login page
 router.get("/login",(req,res)=>{
@@ -13,12 +14,34 @@ router.get("/login",(req,res)=>{
 router.get("/register",(req,res)=>{
     res.render('register')
 });
+
+//Dashboard page
+router.get("/dashboard",ensureAuthenticated, (req,res)=>{
+  res.render('dashboard')
+  
+});
+
 //User model
 const User =  require('../models/User')
 
 //body-parser
 router.use(bodyParser.urlencoded({ extended: false }));
 
+// Authentication
+Authenticated = { ensureAuthenticated: function(req, res, next) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  req.flash('error_msg', 'Please log in to view that resource');
+  res.redirect('/users/login');
+},
+forwardAuthenticated: function(req, res, next) {
+  if (!req.isAuthenticated()) {
+    return next();
+  }
+  res.redirect('/dashboard');      
+}
+}
 
 //register post
 router.post('/register',(req,res)=>{
@@ -51,14 +74,13 @@ router.post('/register',(req,res)=>{
          })
         }else{
 
-          bcrypt.hash(password, saltRounds, function(err, hash) {
-            // Store hash in your password DB.
-            const newUser = new User({
-              name:name,
-              email:email,
-              password:hash
-          
-            })
+          const newUser = new User({
+            name:name,
+            email:email,
+            password:password
+          })
+          // Store hash in your password DB.
+        
             bcrypt.genSalt(10, (err, salt) => {
               bcrypt.hash(newUser.password, salt, (err, hash) => {
                 if (err) throw err;
@@ -72,7 +94,7 @@ router.post('/register',(req,res)=>{
                   .catch(err => console.log(err));
               });
             });
-        });
+        
          
           
           
@@ -86,13 +108,20 @@ router.post('/register',(req,res)=>{
    
 });
 
+
 //log in post
 router.post('/login', (req, res, next) => {
   passport.authenticate('local', {
-    successRedirect: '/dashboard',
+    successRedirect: '/users/dashboard',
     failureRedirect: '/users/login',
     failureFlash: true
   })(req, res, next);
+});
+// Logout
+router.get('/logout', (req, res) => {
+  req.logout();
+  req.flash('success_msg', 'You are logged out');
+  res.redirect('/users/login');
 });
 
 
